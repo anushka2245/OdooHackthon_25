@@ -42,6 +42,27 @@ exports.getUserSwapRequests = async (req, res) => {
   }
 };
 
+const mongoose = require('mongoose');
+
+exports.getRequestsByFromUser = async (req, res) => {
+  const { fromUserId } = req.params;
+
+  try {
+    const swaps = await SwapRequest.find({ fromUser: new mongoose.Types.ObjectId(fromUserId) })
+      .populate('toUser', 'firstName lastName email');
+
+    res.json({
+      success: true,
+      total: swaps.length,
+      data: swaps,
+    });
+  } catch (error) {
+    console.error("Fetch FromUser Swaps Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 exports.getAllSwapRequestsGroupedByStatus = async (req, res) => {
   try {
     // Find all swap requests without filtering by userId
