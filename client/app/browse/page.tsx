@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -19,106 +19,43 @@ import {
 } from "@/components/ui/pagination"
 
 export default function BrowsePage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [filterBy, setFilterBy] = useState("all")
-  const [currentPage, setCurrentPage] = useState(1)
-  const usersPerPage = 6
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterBy, setFilterBy] = useState("all");
+  const [availability, setAvailability] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 6;
+  const [users, setUsers] = useState<any[]>([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const [users] = useState([
-    {
-      id: 1,
-      name: "Sarah Wilson",
-      location: "San Francisco, CA",
-      avatar: "/placeholder.svg",
-      rating: 4.9,
-      skillsOffered: ["Cooking", "Baking", "Nutrition"],
-      skillsWanted: ["Photography", "Guitar"],
-      availability: "Weekends",
-      bio: "Professional chef with 10 years experience. Love teaching cooking!",
-    },
-    {
-      id: 2,
-      name: "Mike Johnson",
-      location: "Austin, TX",
-      avatar: "/placeholder.svg",
-      rating: 4.7,
-      skillsOffered: ["Guitar", "Music Theory", "Songwriting"],
-      skillsWanted: ["Web Design", "Spanish"],
-      availability: "Evenings",
-      bio: "Musician and guitar instructor. Happy to share my passion for music.",
-    },
-    {
-      id: 3,
-      name: "Emily Chen",
-      location: "Seattle, WA",
-      avatar: "/placeholder.svg",
-      rating: 4.8,
-      skillsOffered: ["Web Design", "React", "UI/UX"],
-      skillsWanted: ["Photography", "Yoga"],
-      availability: "Flexible",
-      bio: "Frontend developer and designer. Love creating beautiful user experiences.",
-    },
-    {
-      id: 4,
-      name: "David Rodriguez",
-      location: "Miami, FL",
-      avatar: "/placeholder.svg",
-      rating: 4.6,
-      skillsOffered: ["Spanish", "Salsa Dancing", "Travel Planning"],
-      skillsWanted: ["Cooking", "Photography"],
-      availability: "Weekends",
-      bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
-    },
-    {
-      id: 5,
-      name: "David Rodriguez",
-      location: "Miami, FL",
-      avatar: "/placeholder.svg",
-      rating: 4.6,
-      skillsOffered: ["Spanish", "Salsa Dancing", "Travel Planning"],
-      skillsWanted: ["Cooking", "Photography"],
-      availability: "Weekends",
-      bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
-    },
-    {
-      id: 6,
-      name: "David Rodriguez",
-      location: "Miami, FL",
-      avatar: "/placeholder.svg",
-      rating: 4.6,
-      skillsOffered: ["Spanish", "Salsa Dancing", "Travel Planning"],
-      skillsWanted: ["Cooking", "Photography"],
-      availability: "Weekends",
-      bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
-    },
-    {
-      id: 7,
-      name: "David Rodriguez",
-      location: "Miami, FL",
-      avatar: "/placeholder.svg",
-      rating: 4.6,
-      skillsOffered: ["Spanish", "Salsa Dancing", "Travel Planning"],
-      skillsWanted: ["Cooking", "Photography"],
-      availability: "Weekends",
-      bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
-    },
-  ])
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.skillsOffered.some((skill) => skill.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      user.skillsWanted.some((skill) => skill.toLowerCase().includes(searchTerm.toLowerCase()))
-
-    if (filterBy === "all") return matchesSearch
-    return matchesSearch && user.skillsOffered.some((skill) => skill.toLowerCase().includes(filterBy.toLowerCase()))
-  })
-
-  const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
-  const paginatedUsers = filteredUsers.slice(
-    (currentPage - 1) * usersPerPage,
-    currentPage * usersPerPage
-  )
+  useEffect(() => {
+    setLoading(true);
+    setError("");
+    const params = new URLSearchParams();
+    params.append("page", String(currentPage));
+    params.append("limit", String(usersPerPage));
+    if (filterBy !== "all") params.append("skill", filterBy);
+    if (availability) params.append("availability", availability);
+    if (searchTerm) params.append("search", searchTerm);
+    fetch(`http://localhost:5000/api/users/public-paginated?${params.toString()}`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data.data)) {
+          setUsers(data.data);
+          setTotalPages(data.totalPages || 1);
+        } else {
+          setUsers([]);
+          setTotalPages(1);
+        }
+      })
+      .catch(() => {
+        setError("Failed to fetch users.");
+        setUsers([]);
+        setTotalPages(1);
+      })
+      .finally(() => setLoading(false));
+  }, [searchTerm, filterBy, availability, currentPage]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -175,69 +112,82 @@ export default function BrowsePage() {
 
         {/* User Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paginatedUsers.map((user) => (
-            <Card key={user.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-center space-x-4">
-                  <Avatar className="w-12 h-12">
-                    <AvatarImage src={user.avatar || "/placeholder.svg"} />
-                    <AvatarFallback>
-                      {user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <CardTitle className="text-lg">{user.name}</CardTitle>
-                    <div className="flex items-center text-sm text-gray-600">
-                      <MapPin className="w-3 h-3 mr-1" />
-                      {user.location}
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span className="text-sm font-medium ml-1">{user.rating}</span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-600">{user.bio}</p>
-
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Can Teach:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {user.skillsOffered.map((skill) => (
-                      <Badge key={skill} variant="default" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <h4 className="text-sm font-medium mb-2">Wants to Learn:</h4>
-                  <div className="flex flex-wrap gap-1">
-                    {user.skillsWanted.map((skill) => (
-                      <Badge key={skill} variant="outline" className="text-xs">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <span className="text-sm text-gray-600">Available: <span className="font-bold">{user.availability}</span></span>
-                  <div className="flex gap-2">
-                    <Button size="sm">
-                      <MessageSquare className="w-4 h-4 mr-1" />
-                      Request
-                    </Button>
-                  </div>
-                </div>
+          {loading ? (
+            <div className="col-span-full text-center py-12">Loading users...</div>
+          ) : users.length === 0 ? (
+            <Card className="text-center py-12 col-span-full">
+              <CardContent>
+                <p className="text-gray-600">No users found matching your search criteria.</p>
               </CardContent>
             </Card>
-          ))}
+          ) : (
+            users.map((user) => (
+              <Card key={user._id || user.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex items-center space-x-4">
+                    <Avatar className="w-12 h-12">
+                      <AvatarImage src={user.profilePhoto || "/placeholder.svg"} />
+                      <AvatarFallback>
+                        {user.name
+                          .split(" ")
+                          .map((n: string) => n[0])
+                          .join("")}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <CardTitle className="text-lg">{user.name}</CardTitle>
+                      <div className="flex items-center text-sm text-gray-600">
+                        <MapPin className="w-3 h-3 mr-1" />
+                        {user.location}
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                      <span className="text-sm font-medium ml-1">{user.rating}</span>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-gray-600">{user.bio}</p>
+
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Can Teach:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {user.skillsOffered && user.skillsOffered.length > 0 ? user.skillsOffered.map((skill: string) => (
+                        <Badge key={skill} variant="default" className="text-xs">
+                          {skill}
+                        </Badge>
+                      )) : <span className="text-xs text-gray-400">None</span>}
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Wants to Learn:</h4>
+                    <div className="flex flex-wrap gap-1">
+                      {user.skillsWanted && user.skillsWanted.length > 0 ? user.skillsWanted.map((skill: string) => (
+                        <Badge key={skill} variant="outline" className="text-xs">
+                          {skill}
+                        </Badge>
+                      )) : <span className="text-xs text-gray-400">None</span>}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-sm text-gray-600">Available: {Array.isArray(user.availability) ? user.availability.join(", ") : user.availability}</span>
+                    <div className="flex gap-2">
+                      <Button size="sm" variant="outline">
+                        View Profile
+                      </Button>
+                      <Button size="sm">
+                        <MessageSquare className="w-4 h-4 mr-1" />
+                        Connect
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
         </div>
 
         {/* Pagination Controls */}
@@ -282,14 +232,6 @@ export default function BrowsePage() {
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-        )}
-
-        {filteredUsers.length === 0 && (
-          <Card className="text-center py-12">
-            <CardContent>
-              <p className="text-gray-600">No users found matching your search criteria.</p>
-            </CardContent>
-          </Card>
         )}
       </div>
     </div>

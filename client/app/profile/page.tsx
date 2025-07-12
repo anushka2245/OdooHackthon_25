@@ -57,16 +57,20 @@ export default function ProfilePage() {
       });
   }, [user]);
 
-  const [newSkill, setNewSkill] = useState("")
+  const [newSkillOffered, setNewSkillOffered] = useState("");
+  const [newSkillWanted, setNewSkillWanted] = useState("");
 
   const addSkill = (type: "offered" | "wanted") => {
-    if (newSkill.trim()) {
-      if (type === "offered") {
-        setSkillsOffered([...skillsOffered, newSkill.trim()])
-      } else {
-        setSkillsWanted([...skillsWanted, newSkill.trim()])
+    if (type === "offered") {
+      if (newSkillOffered.trim()) {
+        setSkillsOffered([...skillsOffered, newSkillOffered.trim()]);
+        setNewSkillOffered("");
       }
-      setNewSkill("")
+    } else {
+      if (newSkillWanted.trim()) {
+        setSkillsWanted([...skillsWanted, newSkillWanted.trim()]);
+        setNewSkillWanted("");
+      }
     }
   }
 
@@ -240,8 +244,8 @@ export default function ProfilePage() {
                     <div className="flex gap-2">
                       <Input
                         placeholder="Add a skill..."
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
+                        value={newSkillOffered}
+                        onChange={(e) => setNewSkillOffered(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && addSkill("offered")}
                       />
                       <Button onClick={() => addSkill("offered")}>
@@ -269,8 +273,8 @@ export default function ProfilePage() {
                     <div className="flex gap-2">
                       <Input
                         placeholder="Add a skill..."
-                        value={newSkill}
-                        onChange={(e) => setNewSkill(e.target.value)}
+                        value={newSkillWanted}
+                        onChange={(e) => setNewSkillWanted(e.target.value)}
                         onKeyPress={(e) => e.key === "Enter" && addSkill("wanted")}
                       />
                       <Button onClick={() => addSkill("wanted")}>
