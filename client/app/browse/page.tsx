@@ -227,14 +227,11 @@ export default function BrowsePage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <span className="text-sm text-gray-600">Available: {user.availability}</span>
+                  <span className="text-sm text-gray-600">Available: <span className="font-bold">{user.availability}</span></span>
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
-                      View Profile
-                    </Button>
                     <Button size="sm">
                       <MessageSquare className="w-4 h-4 mr-1" />
-                      Connect
+                      Request
                     </Button>
                   </div>
                 </div>

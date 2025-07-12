@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -15,14 +16,26 @@ import { Plus, X, Camera, Users } from "lucide-react"
 import Link from "next/link"
 
 export default function ProfilePage() {
+  const { user } = useAuth();
   const [profile, setProfile] = useState({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    location: "New York, NY",
-    bio: "Passionate about learning and teaching new skills. Love photography and cooking!",
+    name: "",
+    email: "",
+    location: "",
+    bio: "",
     isPublic: true,
     availability: "weekends",
-  })
+  });
+
+  useEffect(() => {
+    if (user) {
+      setProfile((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        email: user.email || prev.email,
+        // Optionally set avatar, if you add avatar to profile state
+      }));
+    }
+  }, [user]);
 
   const [skillsOffered, setSkillsOffered] = useState(["Photography", "Photoshop", "Web Design", "Cooking"])
 
@@ -90,8 +103,12 @@ export default function ProfilePage() {
                   {/* Profile Photo */}
                   <div className="flex items-center space-x-4">
                     <Avatar className="w-20 h-20">
-                      <AvatarImage src="/placeholder.svg" />
-                      <AvatarFallback>JD</AvatarFallback>
+                      <AvatarImage src={user?.avatar || "/placeholder.svg"} />
+                      <AvatarFallback>
+                        {profile.name
+                          ? profile.name.split(" ").map((n) => n[0]).join("")
+                          : "U"}
+                      </AvatarFallback>
                     </Avatar>
                     <Button variant="outline">
                       <Camera className="w-4 h-4 mr-2" />
