@@ -108,6 +108,17 @@ export default function DashboardPage() {
     }
   };
 
+  const handleRequestDelete = async (id: string) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/swaps/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setRequests((prev) => prev.filter(r => r._id !== id));
+      }
+    } catch {}
+  };
+
   const { logout, user } = useAuth();
 
   return (
@@ -215,6 +226,9 @@ export default function DashboardPage() {
                           </Button>
                           <Button size="sm" variant="outline" disabled={request.status === 'rejected'} onClick={() => handleRequestAction(request._id, 'rejected')}>
                             Reject
+                          </Button>
+                          <Button size="sm" variant="destructive" onClick={() => handleRequestDelete(request._id)}>
+                            Delete
                           </Button>
                         </div>
                       </CardContent>
