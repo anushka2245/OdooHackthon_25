@@ -11,7 +11,6 @@ const {
 
 const router = express.Router();
 
-// ⚠️ Remove `protect` if you don’t want token validation
 router.post('/', sendSwapRequest);
 router.get('/', getUserSwapRequests);
 router.put('/:id', updateSwapRequestStatus);

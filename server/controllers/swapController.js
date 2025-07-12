@@ -1,6 +1,6 @@
 const SwapRequest = require('../models/SwapRequest');
 
-// ✅ Send a New Swap Request
+// Send a New Swap Request
 exports.sendSwapRequest = async (req, res) => {
   const { fromUser, toUser, skillOffered, skillRequested } = req.body;
 
@@ -19,7 +19,7 @@ exports.sendSwapRequest = async (req, res) => {
   }
 };
 
-// ✅ Get All Swap Requests for Specific User
+// Get All Swap Requests for Specific User
 exports.getUserSwapRequests = async (req, res) => {
   const { userId } = req.query;
 
@@ -40,7 +40,7 @@ exports.getUserSwapRequests = async (req, res) => {
   }
 };
 
-// ✅ Update Swap Request Status (Accept/Reject)
+//  Update Swap Request Status (Accept/Reject)
 exports.updateSwapRequestStatus = async (req, res) => {
   const { status, userId } = req.body;
 
