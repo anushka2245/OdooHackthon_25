@@ -271,4 +271,113 @@ export default function AdminPage() {
                   </TableBody>
                 </Table>
               </CardContent>
-            \
+            </Card>
+          </TabsContent>
+          <TabsContent value="messages">
+            <Card>
+              <CardHeader>
+                <CardTitle>Global Messages</CardTitle>
+                <CardDescription>Send announcements to all platform users</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="global-message" className="block text-sm font-medium text-gray-700 mb-2">
+                      Message to all users
+                    </label>
+                    <textarea
+                      id="global-message"
+                      value={globalMessage}
+                      onChange={(e) => setGlobalMessage(e.target.value)}
+                      placeholder="Enter your global message here..."
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={handleSendGlobalMessage} disabled={!globalMessage.trim()}>
+                      Send Message
+                    </Button>
+                    <Button variant="outline" onClick={() => setGlobalMessage("")}>
+                      Clear
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <div className="grid md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Platform Statistics</CardTitle>
+                  <CardDescription>Key metrics and performance indicators</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Monthly Active Users</span>
+                      <span className="font-semibold">892</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Successful Swaps</span>
+                      <span className="font-semibold">1,247</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Average Rating</span>
+                      <span className="font-semibold">4.6/5</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Response Time</span>
+                      <span className="font-semibold">2.3 hours</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Reports & Downloads</CardTitle>
+                  <CardDescription>Generate and download platform reports</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => handleDownloadReport('users')}
+                    >
+                      Download User Report
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => handleDownloadReport('swaps')}
+                    >
+                      Download Swap Report
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => handleDownloadReport('reports')}
+                    >
+                      Download Reports Log
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start"
+                      onClick={() => handleDownloadReport('analytics')}
+                    >
+                      Download Analytics
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </div>
+    </div>
+  )
+}
