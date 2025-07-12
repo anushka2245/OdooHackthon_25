@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const {
-  getAllPublicProfiles,
+  getPublicProfiles,                // ✅ Corrected name
   getPaginatedPublicProfiles
 } = require('../controllers/userController');
 
-router.get('/public', getAllPublicProfiles);
+router.get('/public-profiles', getPublicProfiles);           // ✅ Matches export
 router.get('/public-paginated', getPaginatedPublicProfiles);
 
 module.exports = router;
