@@ -1,11 +1,11 @@
-// controllers/userController.js
-const { getDb } = require('../config/getDb');
+const { getDb } = require('../config/db'); // Updated import path
 
 exports.getPublicProfiles = async (req, res) => {
   try {
     const db = getDb();
     const { skill, availability } = req.query;
 
+    // Build query dynamically
     const query = { isPublic: true };
 
     if (skill) {
@@ -35,6 +35,7 @@ exports.getPublicProfiles = async (req, res) => {
 
     res.status(200).json({ success: true, users });
   } catch (error) {
+    console.error('Error fetching public profiles:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };

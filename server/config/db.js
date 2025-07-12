@@ -1,17 +1,32 @@
-const mongoose = require('mongoose');
+const dotenv = require('dotenv');
+const { MongoClient } = require('mongodb');
+
+dotenv.config();
+
+let _db;
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
+    const client = await MongoClient.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
     });
 
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    // Use database from MONGO_URI (skill_swap)
+    _db = client.db(); 
+
+    console.log('✅ Connected to MongoDB: skill_swap');
   } catch (error) {
-    console.error(`MongoDB connection failed: ${error.message}`);
-    process.exit(1); 
+    console.error('❌ MongoDB Connection Error:', error.message);
+    process.exit(1);
   }
 };
 
-module.exports = connectDB;
+const getDb = () => {
+  if (!_db) {
+    throw new Error('Database not connected. Call connectDB() first.');
+  }
+  return _db;
+};
+
+module.exports = { connectDB, getDb };

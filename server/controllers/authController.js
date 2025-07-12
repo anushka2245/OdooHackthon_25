@@ -1,88 +1,77 @@
 const User = require('../models/user');
+const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-// Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+// 🔐 Generate JWT token
+const generateToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
+    expiresIn: '7d',
+  });
 };
 
-// ✅ Register New User
+// ✅ Register a new user
 const registerUser = async (req, res) => {
-  const {
-    firstName,
-    lastName,
-    email,
-    password,
-    location,
-    bio,
-    profilePhoto,
-    skillsOffered,
-    skillsWanted,
-    timezone,
-    preferredTime,
-    isPublic,
-    receiveNotifications,
-    acceptedTerms
-  } = req.body;
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ message: 'All fields are required' });
+  }
 
   try {
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Create user
-    const user = await User.create({
-      firstName,
-      lastName,
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
+      name,
       email,
-      password,
-      location,
-      bio,
-      profilePhoto,
-      skillsOffered,
-      skillsWanted,
-      timezone,
-      preferredTime,
-      isPublic,
-      receiveNotifications,
-      acceptedTerms
+      password: hashedPassword,
     });
 
-    // Return response with token
     res.status(201).json({
-      _id: user._id,
-      name: `${user.firstName} ${user.lastName}`,
-      email: user.email,
-      token: generateToken(user._id),
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      token: generateToken(newUser._id),
     });
-
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Registration error:', error.message);
+    res.status(500).json({ message: 'Server error. Try again.' });
   }
 };
 
-// ✅ Login User
+// (Optional) ✅ Login user function
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const user = await User.findOne({ email });
-    if (!user || !(await user.matchPassword(password))) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+    if (!user) {
+      return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    res.json({
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    res.status(200).json({
       _id: user._id,
-      name: `${user.firstName} ${user.lastName}`,
+      name: user.name,
       email: user.email,
       token: generateToken(user._id),
     });
-
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Login error:', error.message);
+    res.status(500).json({ message: 'Server error. Try again.' });
   }
 };
 
-module.exports = { registerUser, loginUser };
+module.exports = {
+  registerUser,
+  loginUser, 
+};
