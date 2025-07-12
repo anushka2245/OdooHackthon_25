@@ -25,21 +25,37 @@ export default function ProfilePage() {
     isPublic: true,
     availability: "weekends",
   });
+  
+  const [skillsOffered, setSkillsOffered] = useState<string[]>([]);
+  const [skillsWanted, setSkillsWanted] = useState<string[]>([]);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      setProfile((prev) => ({
-        ...prev,
-        name: user.name || prev.name,
-        email: user.email || prev.email,
-        // Optionally set avatar, if you add avatar to profile state
-      }));
-    }
+    // Get userId from localStorage or user context
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    const id = userId || user?.id;
+    if (!id) return;
+    console.log({userId})
+    fetch(`http://localhost:5000/api/users/${id}`)
+      .then(res => res.json())
+      .then(data => {
+        data = data.user;
+        if (data) {
+          setProfile(prev => ({
+            ...prev,
+            name: data.name || prev.name,
+            email: data.email || prev.email,
+            location: data.location || "",
+            bio: data.bio || "",
+            isPublic: data.isPublic !== undefined ? data.isPublic : true,
+            availability: data.availability || "weekends",
+          }));
+          setSkillsOffered(Array.isArray(data.skillsOffered) ? data.skillsOffered : []);
+          setSkillsWanted(Array.isArray(data.skillsWanted) ? data.skillsWanted : []);
+        }
+      });
   }, [user]);
-
-  const [skillsOffered, setSkillsOffered] = useState(["Photography", "Photoshop", "Web Design", "Cooking"])
-
-  const [skillsWanted, setSkillsWanted] = useState(["Guitar", "Spanish", "Yoga", "Woodworking"])
 
   const [newSkill, setNewSkill] = useState("")
 
@@ -61,6 +77,44 @@ export default function ProfilePage() {
       setSkillsWanted(skillsWanted.filter((s) => s !== skill))
     }
   }
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveMessage(null);
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    const id = userId || user?.id;
+    if (!id) {
+      setSaveMessage('User ID not found.');
+      setSaving(false);
+      return;
+    }
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: profile.name,
+          email: profile.email,
+          location: profile.location,
+          bio: profile.bio,
+          isPublic: profile.isPublic,
+          skillsOffered,
+          skillsWanted,
+          availability: Array.isArray(profile.availability) ? profile.availability : [profile.availability],
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSaveMessage('Profile updated successfully!');
+      } else {
+        setSaveMessage(data.error || 'Failed to update profile.');
+      }
+    } catch (err) {
+      setSaveMessage('Network error. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -156,7 +210,12 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  <Button>Save Changes</Button>
+                  <Button onClick={handleSave} disabled={saving}>
+                    {saving ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  {saveMessage && (
+                    <div className={`mt-2 text-sm ${saveMessage.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{saveMessage}</div>
+                  )}
                 </CardContent>
               </Card>
             </TabsContent>

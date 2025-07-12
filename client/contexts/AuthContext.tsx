@@ -41,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email, password })
       });
       const data = await res.json();
+      console.log(data)
       if (res.ok) {
         // Save tokens if provided
         if (data.token) {
@@ -48,6 +49,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         if (data.sessionToken) {
           document.cookie = `session-token=${data.sessionToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+        }
+        // Store user id from response (support both _id and user.id)
+        if (data._id) {
+          localStorage.setItem('userId', data._id);
+        } else if (data.user && data.user.id) {
+          localStorage.setItem('userId', data.user.id);
         }
         setUser(data.user);
         return { success: true };
