@@ -2,20 +2,24 @@ const SwapRequest = require('../models/SwapRequest');
 
 // Send a New Swap Request
 exports.sendSwapRequest = async (req, res) => {
-  const { fromUser, toUser} = req.body;
+  const { fromUser, toUser, skillOffered, skillRequested, message } = req.body;
 
   try {
     const swap = await SwapRequest.create({
       fromUser,
-      toUser
+      toUser,
+      skillOffered,
+      skillRequested,
+      message,
     });
 
-    res.status(201).json(swap);
+    res.status(201).json({ success: true, data: swap });
   } catch (error) {
     console.error("Send Swap Error:", error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
+
 
 // Get All Swap Requests for Specific User
 exports.getUserSwapRequests = async (req, res) => {
