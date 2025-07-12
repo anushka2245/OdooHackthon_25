@@ -4,6 +4,7 @@ const {
   getUserSwapRequests,
   updateSwapRequestStatus,
   deleteSwapRequest,
+  getAllSwapRequestsGroupedByStatus
 } = require('../controllers/swapController');
 
 // 👇 REMOVE THIS LINE IF NOT USING TOKEN AUTH
@@ -15,5 +16,7 @@ router.post('/', sendSwapRequest);
 router.get('/', getUserSwapRequests);
 router.put('/:id', updateSwapRequestStatus);
 router.delete('/:id', deleteSwapRequest);
+router.get('/all-grouped', getAllSwapRequestsGroupedByStatus);
+
 
 module.exports = router;

@@ -14,13 +14,5 @@ const userSchema = new mongoose.Schema({
   feedback: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Feedback' }],
 });
 
-userSchema.pre('save', function (next) {
-  if (!this.profilePhoto && this.name) {
-    this.profilePhoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      this.name
-    )}&background=random&color=fff&bold=true`;
-  }
-  next();
-});
 
 module.exports = mongoose.model('User', userSchema);

@@ -38,6 +38,36 @@ exports.getUserSwapRequests = async (req, res) => {
   }
 };
 
+exports.getAllSwapRequestsGroupedByStatus = async (req, res) => {
+  try {
+    // Find all swap requests without filtering by userId
+    const allRequests = await SwapRequest.find()
+      .populate('fromUser', 'firstName lastName email')
+      .populate('toUser', 'firstName lastName email');
+
+    const pending = [];
+    const accepted = [];
+    const rejected = [];
+
+    allRequests.forEach((swap) => {
+      if (swap.status === 'pending') pending.push(swap);
+      else if (swap.status === 'accepted') accepted.push(swap);
+      else if (swap.status === 'rejected') rejected.push(swap);
+    });
+
+    res.json({
+      success: true,
+      pending,
+      accepted,
+      rejected,
+    });
+  } catch (error) {
+    console.error("Fetch Swaps Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+
 //  Update Swap Request Status (Accept/Reject)
 exports.updateSwapRequestStatus = async (req, res) => {
   const { status, userId } = req.body;

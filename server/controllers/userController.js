@@ -126,7 +126,7 @@ exports.getUserById = async (req, res) => {
 exports.updateUserById = async (req, res) => {
   try {
     const userId = req.params.id;
-    let {
+    const {
       name,
       email,
       profilePhoto,
@@ -135,15 +135,8 @@ exports.updateUserById = async (req, res) => {
       skillsWanted,
       availability,
       rating,
-      isPublic,
+      isPublic
     } = req.body;
-
-    // If no profile photo and name exists, generate from name
-    if (!profilePhoto && name) {
-      profilePhoto = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        name
-      )}&background=random&color=fff&bold=true`;
-    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -156,30 +149,21 @@ exports.updateUserById = async (req, res) => {
         skillsWanted,
         availability,
         rating,
-        isPublic,
+        isPublic
       },
       {
-        new: true,            // return updated document
-        runValidators: true,  // enforce schema validation
+        new: true,            // return updated doc
+        runValidators: true,  // validate with schema
       }
-    ).select('-password'); // exclude password
+    ).select('-password'); // Exclude sensitive fields
 
     if (!updatedUser) {
-      return res
-        .status(404)
-        .json({ success: false, message: 'User not found' });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.status(200).json({
-      success: true,
-      message: 'User updated successfully',
-      data: updatedUser,
-    });
+    res.status(200).json({ success: true, message: 'User updated successfully', data: updatedUser });
   } catch (error) {
     console.error('Error updating user:', error.message);
-    res.status(500).json({
-      success: false,
-      message: 'Server error. Please try again.',
-    });
+    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 };
