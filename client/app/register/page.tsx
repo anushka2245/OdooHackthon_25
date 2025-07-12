@@ -1,35 +1,84 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Users } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Users } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
-  })
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    // Handle registration logic here
-    console.log("Registration attempt:", formData)
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage(null);
+    if (formData.password !== formData.confirmPassword) {
+      setMessage({ type: "error", text: "Passwords do not match." });
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({
+          type: "success",
+          text: data.message || "Registration successful! You can now log in.",
+        });
+        setFormData({ name: "", email: "", password: "", confirmPassword: "" });
+        router.replace("/login");
+      } else {
+        setMessage({
+          type: "error",
+          text: data.error || "Registration failed. Please try again.",
+        });
+      }
+    } catch (err) {
+      setMessage({
+        type: "error",
+        text: "Network error. Please try again later.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
-    }))
-  }
+    }));
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -42,9 +91,20 @@ export default function RegisterPage() {
             <span className="text-xl font-bold">SkillSwap</span>
           </div>
           <CardTitle>Create Account</CardTitle>
-          <CardDescription>Join our community and start swapping skills</CardDescription>
+          <CardDescription>
+            Join our community and start swapping skills
+          </CardDescription>
         </CardHeader>
         <CardContent>
+          {message && (
+            <div
+              className={`mb-4 text-sm ${
+                message.type === "success" ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {message.text}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Full Name</Label>
@@ -93,8 +153,8 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Creating..." : "Create Account"}
             </Button>
           </form>
           <div className="mt-6 text-center">
@@ -108,5 +168,5 @@ export default function RegisterPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

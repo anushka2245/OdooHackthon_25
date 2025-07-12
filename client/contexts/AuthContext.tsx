@@ -35,23 +35,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
-      // This would be implemented with your actual login API
-      // For now, we'll simulate a login
-      const mockUser: User = {
-        id: '1',
-        name: 'John Doe',
-        email: email,
-        avatar: '/placeholder-user.jpg'
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        // Save tokens if provided
+        if (data.token) {
+          document.cookie = `auth-token=${data.token}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+        }
+        if (data.sessionToken) {
+          document.cookie = `session-token=${data.sessionToken}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`;
+        }
+        setUser(data.user);
+        return { success: true };
+      } else {
+        return { success: false, error: data.error || 'Login failed' };
       }
-      
-      // Set mock tokens
-      document.cookie = `auth-token=mock-token-${Date.now()}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`
-      document.cookie = `session-token=mock-session-${Date.now()}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Strict`
-      
-      setUser(mockUser)
-      return { success: true }
     } catch (error) {
-      return { success: false, error: 'Login failed' }
+      return { success: false, error: 'Network error' };
     }
   }
 
