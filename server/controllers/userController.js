@@ -120,3 +120,50 @@ exports.getUserById = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 };
+
+
+// PUT /api/users/:id
+exports.updateUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const {
+      name,
+      email,
+      profilePhoto,
+      location,
+      skillsOffered,
+      skillsWanted,
+      availability,
+      rating,
+      isPublic
+    } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        name,
+        email,
+        profilePhoto,
+        location,
+        skillsOffered,
+        skillsWanted,
+        availability,
+        rating,
+        isPublic
+      },
+      {
+        new: true,            // return updated doc
+        runValidators: true,  // validate with schema
+      }
+    ).select('-password'); // Exclude sensitive fields
+
+    if (!updatedUser) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, message: 'User updated successfully', data: updatedUser });
+  } catch (error) {
+    console.error('Error updating user:', error.message);
+    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+  }
+};
