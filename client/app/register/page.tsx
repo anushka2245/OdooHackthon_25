@@ -84,12 +84,12 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex items-center justify-center space-x-2 mb-4">
+          <Link href="/browse" className="flex items-center justify-center space-x-2 mb-4 hover:opacity-80 transition-opacity">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold">SkillSwap</span>
-          </div>
+          </Link>
           <CardTitle>Create Account</CardTitle>
           <CardDescription>
             Join our community and start swapping skills
