@@ -9,10 +9,20 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Search, Users, MapPin, Star, MessageSquare } from "lucide-react"
 import Link from "next/link"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+} from "@/components/ui/pagination"
 
 export default function BrowsePage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [filterBy, setFilterBy] = useState("all")
+  const [currentPage, setCurrentPage] = useState(1)
+  const usersPerPage = 6
 
   const [users] = useState([
     {
@@ -59,6 +69,39 @@ export default function BrowsePage() {
       availability: "Weekends",
       bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
     },
+    {
+      id: 5,
+      name: "David Rodriguez",
+      location: "Miami, FL",
+      avatar: "/placeholder.svg",
+      rating: 4.6,
+      skillsOffered: ["Spanish", "Salsa Dancing", "Travel Planning"],
+      skillsWanted: ["Cooking", "Photography"],
+      availability: "Weekends",
+      bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
+    },
+    {
+      id: 6,
+      name: "David Rodriguez",
+      location: "Miami, FL",
+      avatar: "/placeholder.svg",
+      rating: 4.6,
+      skillsOffered: ["Spanish", "Salsa Dancing", "Travel Planning"],
+      skillsWanted: ["Cooking", "Photography"],
+      availability: "Weekends",
+      bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
+    },
+    {
+      id: 7,
+      name: "David Rodriguez",
+      location: "Miami, FL",
+      avatar: "/placeholder.svg",
+      rating: 4.6,
+      skillsOffered: ["Spanish", "Salsa Dancing", "Travel Planning"],
+      skillsWanted: ["Cooking", "Photography"],
+      availability: "Weekends",
+      bio: "Native Spanish speaker and travel enthusiast. Let's explore cultures together!",
+    },
   ])
 
   const filteredUsers = users.filter((user) => {
@@ -70,6 +113,12 @@ export default function BrowsePage() {
     if (filterBy === "all") return matchesSearch
     return matchesSearch && user.skillsOffered.some((skill) => skill.toLowerCase().includes(filterBy.toLowerCase()))
   })
+
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
+  const paginatedUsers = filteredUsers.slice(
+    (currentPage - 1) * usersPerPage,
+    currentPage * usersPerPage
+  )
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -126,7 +175,7 @@ export default function BrowsePage() {
 
         {/* User Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredUsers.map((user) => (
+          {paginatedUsers.map((user) => (
             <Card key={user.id} className="hover:shadow-lg transition-shadow">
               <CardHeader>
                 <div className="flex items-center space-x-4">
@@ -193,6 +242,50 @@ export default function BrowsePage() {
             </Card>
           ))}
         </div>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <Pagination className="mt-8">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={e => {
+                    e.preventDefault();
+                    setCurrentPage(p => Math.max(1, p - 1));
+                  }}
+                  aria-disabled={currentPage === 1}
+                  tabIndex={currentPage === 1 ? -1 : 0}
+                />
+              </PaginationItem>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <PaginationItem key={i}>
+                  <PaginationLink
+                    href="#"
+                    isActive={currentPage === i + 1}
+                    onClick={e => {
+                      e.preventDefault();
+                      setCurrentPage(i + 1);
+                    }}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={e => {
+                    e.preventDefault();
+                    setCurrentPage(p => Math.min(totalPages, p + 1));
+                  }}
+                  aria-disabled={currentPage === totalPages}
+                  tabIndex={currentPage === totalPages ? -1 : 0}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
 
         {filteredUsers.length === 0 && (
           <Card className="text-center py-12">
