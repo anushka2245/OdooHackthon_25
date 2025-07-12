@@ -4,19 +4,19 @@ const {
   getUserSwapRequests,
   updateSwapRequestStatus,
   deleteSwapRequest,
-  getAllSwapRequestsGroupedByStatus
+  getAllSwapRequestsGroupedByStatus,
+  getRequestsByFromUser
 } = require('../controllers/swapController');
-
-// 👇 REMOVE THIS LINE IF NOT USING TOKEN AUTH
-// const { protect } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.post('/', sendSwapRequest);
+// 👇 Specific GET routes first!
+router.get('/all-grouped', getAllSwapRequestsGroupedByStatus);
+router.get('/from/:id', getRequestsByFromUser);
 router.get('/', getUserSwapRequests);
+
+router.post('/', sendSwapRequest);
 router.put('/:id', updateSwapRequestStatus);
 router.delete('/:id', deleteSwapRequest);
-router.get('/all-grouped', getAllSwapRequestsGroupedByStatus);
-
 
 module.exports = router;
