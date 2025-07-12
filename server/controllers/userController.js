@@ -19,13 +19,13 @@ exports.getPublicProfiles = async (req, res) => {
     }
 
     const users = await User.find(query)
-      .select('name profilePhoto location bio skillsOffered skillsWanted availability rating')
+      .select('name email profilePhoto location skillsOffered skillsWanted availability rating')
       .lean();
 
     res.status(200).json({ success: true, users });
   } catch (error) {
     console.error('Error fetching public profiles:', error.message);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 };
 
@@ -78,7 +78,7 @@ exports.getPaginatedPublicProfiles = async (req, res) => {
     const total = await User.countDocuments(query);
 
     const users = await User.find(query)
-      .select('name profilePhoto location bio skillsOffered skillsWanted availability rating')
+      .select('name email profilePhoto location skillsOffered skillsWanted availability rating')
       .sort({ rating: -1 })
       .skip((pageNumber - 1) * limitNumber)
       .limit(limitNumber)
@@ -95,6 +95,6 @@ exports.getPaginatedPublicProfiles = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching paginated profiles:', error.message);
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 };
