@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { getPublicProfiles } = require('../controllers/userController');
+const {
+  getAllPublicProfiles,
+  getPaginatedPublicProfiles
+} = require('../controllers/userController');
 
-// GET: Public user profiles (with optional query params like ?skill=...&availability=...)
-router.get('/public-profiles', getPublicProfiles);
+router.get('/public', getAllPublicProfiles);
+router.get('/public-paginated', getPaginatedPublicProfiles);
 
 module.exports = router;

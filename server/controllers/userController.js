@@ -1,17 +1,16 @@
-const { getDb } = require('../config/db'); // Updated import path
+const User = require('../models/user'); // Mongoose User model
 
+// GET /api/users/public
 exports.getPublicProfiles = async (req, res) => {
   try {
-    const db = getDb();
     const { skill, availability } = req.query;
 
-    // Build query dynamically
     const query = { isPublic: true };
 
     if (skill) {
       query.$or = [
         { skillsOffered: { $regex: skill, $options: 'i' } },
-        { skillsWanted: { $regex: skill, $options: 'i' } }
+        { skillsWanted: { $regex: skill, $options: 'i' } },
       ];
     }
 
@@ -19,23 +18,83 @@ exports.getPublicProfiles = async (req, res) => {
       query.availability = { $in: [availability] };
     }
 
-    const users = await db.collection('users')
-      .find(query)
-      .project({
-        name: 1,
-        profilePhoto: 1,
-        location: 1,
-        bio: 1,
-        skillsOffered: 1,
-        skillsWanted: 1,
-        availability: 1,
-        rating: 1
-      })
-      .toArray();
+    const users = await User.find(query)
+      .select('name profilePhoto location bio skillsOffered skillsWanted availability rating')
+      .lean();
 
     res.status(200).json({ success: true, users });
   } catch (error) {
     console.error('Error fetching public profiles:', error.message);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// GET /api/users/public-paginated
+exports.getPaginatedPublicProfiles = async (req, res) => {
+  try {
+    const {
+      skill,
+      availability,
+      page = 1,
+      limit = 10,
+      search = ''
+    } = req.query;
+
+    const pageNumber = parseInt(page);
+    const limitNumber = parseInt(limit);
+    const searchQuery = search.trim();
+
+    const query = { isPublic: true };
+
+    if (skill) {
+      query.$or = [
+        { skillsOffered: { $regex: skill, $options: 'i' } },
+        { skillsWanted: { $regex: skill, $options: 'i' } },
+      ];
+    }
+
+    if (availability) {
+      query.availability = { $in: [availability] };
+    }
+
+    if (searchQuery) {
+      const searchFilter = {
+        $or: [
+          { name: { $regex: searchQuery, $options: 'i' } },
+          { location: { $regex: searchQuery, $options: 'i' } },
+          { skillsOffered: { $regex: searchQuery, $options: 'i' } },
+          { skillsWanted: { $regex: searchQuery, $options: 'i' } },
+        ]
+      };
+
+      if (query.$or) {
+        query.$and = [{ $or: query.$or }, searchFilter];
+        delete query.$or;
+      } else {
+        Object.assign(query, searchFilter);
+      }
+    }
+
+    const total = await User.countDocuments(query);
+
+    const users = await User.find(query)
+      .select('name profilePhoto location bio skillsOffered skillsWanted availability rating')
+      .sort({ rating: -1 })
+      .skip((pageNumber - 1) * limitNumber)
+      .limit(limitNumber)
+      .lean();
+
+    res.status(200).json({
+      success: true,
+      total,
+      currentPage: pageNumber,
+      totalPages: Math.ceil(total / limitNumber),
+      currentCount: users.length,
+      searchQuery,
+      data: users
+    });
+  } catch (error) {
+    console.error('Error fetching paginated profiles:', error.message);
     res.status(500).json({ success: false, message: error.message });
   }
 };
