@@ -17,6 +17,8 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function BrowsePage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -28,6 +30,28 @@ export default function BrowsePage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showRequestModal, setShowRequestModal] = useState(false);
+  const [requestTargetUser, setRequestTargetUser] = useState<any>(null);
+  const [requestSkillOffered, setRequestSkillOffered] = useState("");
+  const [requestSkillRequested, setRequestSkillRequested] = useState("");
+  const [requestMessage, setRequestMessage] = useState("");
+  const [requestLoading, setRequestLoading] = useState(false);
+  const [requestFeedback, setRequestFeedback] = useState<string | null>(null);
+  // Get current user id and skills from localStorage or context
+  const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+  // Optionally, fetch current user skills from profile API if not available in context
+  const [currentUserSkills, setCurrentUserSkills] = useState<string[]>([]);
+  useEffect(() => {
+    if (currentUserId) {
+      fetch(`http://localhost:5000/api/users/${currentUserId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.user && Array.isArray(data.user.skillsOffered)) {
+            setCurrentUserSkills(data.user.skillsOffered);
+          }
+        });
+    }
+  }, [currentUserId]);
 
   useEffect(() => {
     setLoading(true);
@@ -175,12 +199,16 @@ export default function BrowsePage() {
                   <div className="flex items-center justify-between pt-2">
                     <span className="text-sm text-gray-600">Available: {Array.isArray(user.availability) ? user.availability.join(", ") : user.availability}</span>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline">
-                        View Profile
-                      </Button>
-                      <Button size="sm">
+                      <Button size="sm" onClick={() => {
+                        setRequestTargetUser(user);
+                        setShowRequestModal(true);
+                        setRequestSkillOffered("");
+                        setRequestSkillRequested("");
+                        setRequestMessage("");
+                        setRequestFeedback(null);
+                      }}>
                         <MessageSquare className="w-4 h-4 mr-1" />
-                        Connect
+                        Request
                       </Button>
                     </div>
                   </div>
@@ -234,6 +262,84 @@ export default function BrowsePage() {
           </Pagination>
         )}
       </div>
+
+      {/* Request Modal */}
+      <Dialog open={showRequestModal} onOpenChange={setShowRequestModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Swap Request</DialogTitle>
+            <DialogDescription>
+              Choose a skill you can offer and one you want to learn from {requestTargetUser?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={async (e) => {
+            e.preventDefault();
+            setRequestLoading(true);
+            setRequestFeedback(null);
+            try {
+              const res = await fetch("http://localhost:5000/api/swaps", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  fromUser: currentUserId,
+                  toUser: requestTargetUser?._id || requestTargetUser?.id,
+                  skillOffered: requestSkillOffered,
+                  skillRequested: requestSkillRequested,
+                  message: requestMessage,
+                })
+              });
+              if (res.ok) {
+                setRequestFeedback("Request sent successfully!");
+                setTimeout(() => setShowRequestModal(false), 1200);
+              } else {
+                const data = await res.json();
+                setRequestFeedback(data.error || "Failed to send request.");
+              }
+            } catch {
+              setRequestFeedback("Network error. Please try again.");
+            } finally {
+              setRequestLoading(false);
+            }
+          }}>
+            <div className="mb-4">
+              <label className="block mb-1">Choose one of your offered skills</label>
+              <Select value={requestSkillOffered} onValueChange={setRequestSkillOffered} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a skill you offer" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currentUserSkills.length > 0 ? currentUserSkills.map(skill => (
+                    <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                  )) : <SelectItem value="" disabled>No skills found</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mb-4">
+              <label className="block mb-1">Choose one of their wanted skills</label>
+              <Select value={requestSkillRequested} onValueChange={setRequestSkillRequested} required>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a skill you want" />
+                </SelectTrigger>
+                <SelectContent>
+                  {requestTargetUser?.skillsWanted && requestTargetUser.skillsWanted.length > 0 ? requestTargetUser.skillsWanted.map((skill: string) => (
+                    <SelectItem key={skill} value={skill}>{skill}</SelectItem>
+                  )) : <SelectItem value="" disabled>No skills found</SelectItem>}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mb-4">
+              <label className="block mb-1">Message</label>
+              <Textarea value={requestMessage} onChange={e => setRequestMessage(e.target.value)} placeholder="Write a message..." rows={4} />
+            </div>
+            {requestFeedback && <div className={`mb-2 text-sm ${requestFeedback.includes('success') ? 'text-green-600' : 'text-red-600'}`}>{requestFeedback}</div>}
+            <DialogFooter>
+              <Button type="submit" disabled={requestLoading || !requestSkillOffered || !requestSkillRequested}>
+                {requestLoading ? "Sending..." : "Submit"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
