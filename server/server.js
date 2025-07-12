@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const cors = require('cors');
+const authRoutes = require('./routes/authRoutes');
 
 // Load environment variables from .env file
 dotenv.config();
@@ -21,6 +22,8 @@ app.get('/', (req, res) => {
   res.send('Skill Swap API is running...');
 });
 
+// Routes
+app.use('/api/auth', authRoutes);
 // Start Server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
