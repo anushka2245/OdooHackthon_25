@@ -4,6 +4,7 @@ const connectDB = require('./config/db');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes'); 
+const SwapRoutes = require('./routes/swapRoutes'); 
 
 
 
@@ -28,6 +29,7 @@ app.get('/', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes); 
+app.use('/api/swaps', SwapRoutes); 
 
 
 // Start Server
