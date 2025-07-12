@@ -324,7 +324,7 @@ export default function BrowsePage() {
                 <SelectContent>
                   {currentUserSkills.length > 0 ? currentUserSkills.map(skill => (
                     <SelectItem key={skill} value={skill}>{skill}</SelectItem>
-                  )) : <SelectItem value="" disabled>No skills found</SelectItem>}
+                  )) : <SelectItem value="none" disabled>No skills found</SelectItem>}
                 </SelectContent>
               </Select>
             </div>
@@ -337,7 +337,7 @@ export default function BrowsePage() {
                 <SelectContent>
                   {requestTargetUser?.skillsWanted && requestTargetUser.skillsWanted.length > 0 ? requestTargetUser.skillsWanted.map((skill: string) => (
                     <SelectItem key={skill} value={skill}>{skill}</SelectItem>
-                  )) : <SelectItem value="" disabled>No skills found</SelectItem>}
+                  )) : <SelectItem value="none" disabled>No skills found</SelectItem>}
                 </SelectContent>
               </Select>
             </div>

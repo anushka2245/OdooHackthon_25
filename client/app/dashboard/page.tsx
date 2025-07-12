@@ -58,12 +58,12 @@ export default function DashboardPage() {
     if (!currentUserId) return;
     setRequestsLoading(true);
     setRequestsError("");
-    fetch(`http://localhost:5000/api/swaps/from/${currentUserId}?page=${requestsPage}&limit=5`)
+    fetch(`http://localhost:5000/api/swaps?userId=${currentUserId}`)
       .then(res => res.json())
       .then(data => {
-        if (data && Array.isArray(data.data)) {
-          setRequests(data.data);
-          setRequestsTotalPages(data.totalPages || 1);
+        if (Array.isArray(data)) {
+          setRequests(data);
+          setRequestsTotalPages(1); // No pagination in this response, so just 1 page
         } else {
           setRequests([]);
           setRequestsTotalPages(1);
@@ -75,9 +75,40 @@ export default function DashboardPage() {
         setRequestsTotalPages(1);
       })
       .finally(() => setRequestsLoading(false));
-  }, [currentUserId, requestsPage]);
+  }, [currentUserId]);
 
-  const { logout } = useAuth();
+  const handleRequestAction = async (id: string, action: 'accepted' | 'rejected') => {
+    if (action === 'rejected') {
+      // DELETE the swap request
+      try {
+        const res = await fetch(`http://localhost:5000/api/swaps/${id}`, {
+          method: 'DELETE',
+        });
+        if (res.ok) {
+          setRequests((prev) => prev.filter(r => r._id !== id));
+        }
+      } catch {}
+    } else if (action === 'accepted') {
+      // PATCH to accept, then fetch the updated request
+      try {
+        const res = await fetch(`http://localhost:5000/api/swaps/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'accepted' })
+        });
+        if (res.ok) {
+          // Fetch the updated request
+          const updatedRes = await fetch(`http://localhost:5000/api/swaps/${id}`);
+          if (updatedRes.ok) {
+            const updatedRequest = await updatedRes.json();
+            setRequests((prev) => prev.map(r => r._id === id ? updatedRequest : r));
+          }
+        }
+      } catch {}
+    }
+  };
+
+  const { logout, user } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -114,7 +145,7 @@ export default function DashboardPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, John!
+            Welcome back, {user?.name || "there"}!
           </h1>
           <p className="text-gray-600">
             Here's what's happening with your skill swaps
@@ -146,26 +177,14 @@ export default function DashboardPage() {
                     <Card key={request._id}>
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center space-x-4">
-                            <Avatar>
-                              <AvatarImage src={request.fromUser?.profilePhoto || "/placeholder.svg"} />
-                              <AvatarFallback>
-                                {request.fromUser?.name
-                                  ? request.fromUser.name.split(" ").map((n: string) => n[0]).join("")
-                                  : "U"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <h3 className="font-semibold">{request.fromUser?.name || "Unknown"}</h3>
-                              <div className="flex items-center space-x-2">
-                                <div className="flex items-center">
-                                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                  <span className="text-sm font-medium ml-1">{request.fromUser?.rating ?? "-"}</span>
-                                </div>
-                                <span className="text-sm text-gray-400">•</span>
-                                <span className="text-sm text-gray-600">{request.fromUser?.email}</span>
-                              </div>
-                              <p className="text-sm text-gray-600">{new Date(request.createdAt).toLocaleString()}</p>
+                          <div className="flex flex-col">
+                            <div className="flex items-center space-x-2">
+                              <span className="font-semibold">From:</span>
+                              <span>{request.fromUser?.email || "Unknown"}</span>
+                            </div>
+                            <div className="flex items-center space-x-2 mt-1">
+                              <span className="font-semibold">To:</span>
+                              <span>{request.toUser?.email || "Unknown"}</span>
                             </div>
                           </div>
                           <Badge variant="secondary">
@@ -173,8 +192,7 @@ export default function DashboardPage() {
                             {request.status}
                           </Badge>
                         </div>
-
-                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                        <div className="grid md:grid-cols-2 gap-4 mb-2">
                           <div>
                             <h4 className="text-sm font-medium mb-1">Skill Offered:</h4>
                             <Badge variant="default">{request.skillOffered}</Badge>
@@ -184,41 +202,26 @@ export default function DashboardPage() {
                             <Badge variant="outline">{request.skillRequested}</Badge>
                           </div>
                         </div>
-
+                        <div className="text-sm text-gray-600 mb-2">Requested at: {new Date(request.createdAt).toLocaleString()}</div>
                         {request.message && (
                           <div className="mb-4">
                             <h4 className="text-sm font-medium mb-2">Message:</h4>
                             <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{request.message}</p>
                           </div>
                         )}
+                        <div className="flex gap-2 mt-4">
+                          <Button size="sm" variant="default" disabled={request.status === 'accepted'} onClick={() => handleRequestAction(request._id, 'accepted')}>
+                            Accept
+                          </Button>
+                          <Button size="sm" variant="outline" disabled={request.status === 'rejected'} onClick={() => handleRequestAction(request._id, 'rejected')}>
+                            Reject
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ))
                 )}
-                {/* Pagination Controls */}
-                {requestsTotalPages > 1 && (
-                  <div className="flex justify-center mt-6">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRequestsPage((p) => Math.max(1, p - 1))}
-                      disabled={requestsPage === 1}
-                      className="mr-2"
-                    >
-                      Previous
-                    </Button>
-                    <span className="px-2 py-1 text-sm">Page {requestsPage} of {requestsTotalPages}</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setRequestsPage((p) => Math.min(requestsTotalPages, p + 1))}
-                      disabled={requestsPage === requestsTotalPages}
-                      className="ml-2"
-                    >
-                      Next
-                    </Button>
-                  </div>
-                )}
+                {/* No pagination controls since API does not provide pagination info */}
               </TabsContent>
 
               <TabsContent value="history">
