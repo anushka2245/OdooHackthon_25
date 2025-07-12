@@ -1,27 +1,73 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, MessageSquare, Star, Users, Calendar, Settings, Check, X, Clock } from "lucide-react"
-import Link from "next/link"
-import { useAuth } from "@/contexts/AuthContext"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Bell,
+  MessageSquare,
+  Star,
+  Users,
+  Calendar,
+  Settings,
+  Check,
+  X,
+  Clock,
+} from "lucide-react";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function DashboardPage() {
   const [notifications] = useState([
-    { id: 1, message: "New swap request from John for Photoshop", time: "2 hours ago" },
-    { id: 2, message: "Sarah accepted your cooking lesson request", time: "1 day ago" },
-    { id: 3, message: "Reminder: Guitar lesson with Mike tomorrow", time: "2 days ago" },
-  ])
+    {
+      id: 1,
+      message: "New swap request from John for Photoshop",
+      time: "2 hours ago",
+    },
+    {
+      id: 2,
+      message: "Sarah accepted your cooking lesson request",
+      time: "1 day ago",
+    },
+    {
+      id: 3,
+      message: "Reminder: Guitar lesson with Mike tomorrow",
+      time: "2 days ago",
+    },
+  ]);
 
   const [activeSwaps] = useState([
-    { id: 1, partner: "John Doe", skill: "Photoshop", status: "pending", avatar: "/placeholder.svg" },
-    { id: 2, partner: "Sarah Wilson", skill: "Cooking", status: "accepted", avatar: "/placeholder.svg" },
-    { id: 3, partner: "Mike Johnson", skill: "Guitar", status: "scheduled", avatar: "/placeholder.svg" },
-  ])
+    {
+      id: 1,
+      partner: "John Doe",
+      skill: "Photoshop",
+      status: "pending",
+      avatar: "/placeholder.svg",
+    },
+    {
+      id: 2,
+      partner: "Sarah Wilson",
+      skill: "Cooking",
+      status: "accepted",
+      avatar: "/placeholder.svg",
+    },
+    {
+      id: 3,
+      partner: "Mike Johnson",
+      skill: "Guitar",
+      status: "scheduled",
+      avatar: "/placeholder.svg",
+    },
+  ]);
 
   const [pendingRequests] = useState([
     {
@@ -30,7 +76,8 @@ export default function DashboardPage() {
       avatar: "/placeholder.svg",
       skillOffered: "Guitar Lessons",
       skillWanted: "Photography",
-      message: "Hi! I'd love to learn photography from you. I can teach guitar in return. I'm available weekends!",
+      message:
+        "Hi! I'd love to learn photography from you. I can teach guitar in return. I'm available weekends!",
       timestamp: "2 hours ago",
       rating: 4.8,
       totalSwaps: 12,
@@ -59,7 +106,7 @@ export default function DashboardPage() {
       rating: 4.6,
       totalSwaps: 8,
     },
-  ])
+  ]);
 
   const { logout } = useAuth();
 
@@ -68,12 +115,16 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          {" "}
+          <Link
+            href="/browse"
+            className="flex items-center space-x-2 cursor-pointer"
+          >
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold">SkillSwap</span>
-          </div>
+          </Link>
           <div className="flex items-center space-x-4">
             <Button variant="ghost" size="icon">
               <Bell className="w-5 h-5" />
@@ -93,8 +144,12 @@ export default function DashboardPage() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome back, John!</h1>
-          <p className="text-gray-600">Here's what's happening with your skill swaps</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Welcome back, John!
+          </h1>
+          <p className="text-gray-600">
+            Here's what's happening with your skill swaps
+          </p>
         </div>
 
         <div className="grid lg:grid-cols-3 gap-8">
@@ -103,7 +158,9 @@ export default function DashboardPage() {
             <Tabs defaultValue="swaps" className="space-y-6">
               <TabsList>
                 <TabsTrigger value="swaps">Active Swaps</TabsTrigger>
-                <TabsTrigger value="requests">Requests ({pendingRequests.length})</TabsTrigger>
+                <TabsTrigger value="requests">
+                  Requests ({pendingRequests.length})
+                </TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
 
@@ -114,7 +171,9 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
                           <Avatar>
-                            <AvatarImage src={swap.avatar || "/placeholder.svg"} />
+                            <AvatarImage
+                              src={swap.avatar || "/placeholder.svg"}
+                            />
                             <AvatarFallback>
                               {swap.partner
                                 .split(" ")
@@ -124,7 +183,9 @@ export default function DashboardPage() {
                           </Avatar>
                           <div>
                             <h3 className="font-semibold">{swap.partner}</h3>
-                            <p className="text-sm text-gray-600">Teaching: {swap.skill}</p>
+                            <p className="text-sm text-gray-600">
+                              Teaching: {swap.skill}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
@@ -133,8 +194,8 @@ export default function DashboardPage() {
                               swap.status === "accepted"
                                 ? "default"
                                 : swap.status === "pending"
-                                  ? "secondary"
-                                  : "outline"
+                                ? "secondary"
+                                : "outline"
                             }
                           >
                             {swap.status}
@@ -157,7 +218,9 @@ export default function DashboardPage() {
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center space-x-4">
                           <Avatar>
-                            <AvatarImage src={request.avatar || "/placeholder.svg"} />
+                            <AvatarImage
+                              src={request.avatar || "/placeholder.svg"}
+                            />
                             <AvatarFallback>
                               {request.from
                                 .split(" ")
@@ -170,12 +233,18 @@ export default function DashboardPage() {
                             <div className="flex items-center space-x-2">
                               <div className="flex items-center">
                                 <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                <span className="text-sm font-medium ml-1">{request.rating}</span>
+                                <span className="text-sm font-medium ml-1">
+                                  {request.rating}
+                                </span>
                               </div>
                               <span className="text-sm text-gray-400">•</span>
-                              <span className="text-sm text-gray-600">{request.totalSwaps} swaps</span>
+                              <span className="text-sm text-gray-600">
+                                {request.totalSwaps} swaps
+                              </span>
                             </div>
-                            <p className="text-sm text-gray-600">{request.timestamp}</p>
+                            <p className="text-sm text-gray-600">
+                              {request.timestamp}
+                            </p>
                           </div>
                         </div>
                         <Badge variant="secondary">
@@ -186,18 +255,26 @@ export default function DashboardPage() {
 
                       <div className="grid md:grid-cols-2 gap-4 mb-4">
                         <div>
-                          <h4 className="text-sm font-medium mb-1">Offering:</h4>
-                          <Badge variant="default">{request.skillOffered}</Badge>
+                          <h4 className="text-sm font-medium mb-1">
+                            Offering:
+                          </h4>
+                          <Badge variant="default">
+                            {request.skillOffered}
+                          </Badge>
                         </div>
                         <div>
-                          <h4 className="text-sm font-medium mb-1">Wants to learn:</h4>
+                          <h4 className="text-sm font-medium mb-1">
+                            Wants to learn:
+                          </h4>
                           <Badge variant="outline">{request.skillWanted}</Badge>
                         </div>
                       </div>
 
                       <div className="mb-4">
                         <h4 className="text-sm font-medium mb-2">Message:</h4>
-                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{request.message}</p>
+                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
+                          {request.message}
+                        </p>
                       </div>
 
                       <div className="flex gap-2">
@@ -223,7 +300,9 @@ export default function DashboardPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Swap History</CardTitle>
-                    <CardDescription>Your completed skill exchanges</CardDescription>
+                    <CardDescription>
+                      Your completed skill exchanges
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-gray-600">No completed swaps yet.</p>
@@ -248,12 +327,18 @@ export default function DashboardPage() {
                   </Button>
                 </Link>
                 <Link href="/profile">
-                  <Button variant="outline" className="w-full justify-start bg-transparent">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start bg-transparent"
+                  >
                     <Settings className="w-4 h-4 mr-2" />
                     Edit Profile
                   </Button>
                 </Link>
-                <Button variant="outline" className="w-full justify-start bg-transparent">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start bg-transparent"
+                >
                   <Calendar className="w-4 h-4 mr-2" />
                   Schedule Session
                 </Button>
@@ -267,9 +352,14 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {notifications.map((notification) => (
-                  <div key={notification.id} className="p-3 bg-gray-50 rounded-lg">
+                  <div
+                    key={notification.id}
+                    className="p-3 bg-gray-50 rounded-lg"
+                  >
                     <p className="text-sm">{notification.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{notification.time}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {notification.time}
+                    </p>
                   </div>
                 ))}
               </CardContent>
@@ -302,5 +392,5 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

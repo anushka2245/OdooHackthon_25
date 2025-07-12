@@ -125,12 +125,12 @@ export default function ProfilePage() {
       {/* Header */}
       <header className="bg-white border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <Link href="/browse" className="flex items-center space-x-2 cursor-pointer">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <Users className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold">SkillSwap</span>
-          </div>
+          </Link>
           <Link href="/dashboard">
             <Button variant="outline">Back to Dashboard</Button>
           </Link>
