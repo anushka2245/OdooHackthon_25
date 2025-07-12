@@ -98,3 +98,25 @@ exports.getPaginatedPublicProfiles = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error. Please try again.' });
   }
 };
+
+
+// GET /api/users/:id
+exports.getUserById = async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Find user by ID and only select public fields
+    const user = await User.findById(userId)
+      .select('name email profilePhoto location skillsOffered skillsWanted availability rating')
+      .lean();
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error('Error fetching user by ID:', error.message);
+    res.status(500).json({ success: false, message: 'Server error. Please try again.' });
+  }
+};
