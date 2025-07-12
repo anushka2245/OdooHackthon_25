@@ -12,7 +12,6 @@ Team Members
 
 GitHub repo : https://github.com/anushka2245/OdooHackthon_25#
 Mongo DB:- https://cloud.mongodb.com/v2/6871bb94752d3c3291772e2a#/overview
-
-
-
 project name : SkillSwap
+
+<img width="1901" height="907" alt="image" src="https://github.com/user-attachments/assets/ef49526f-60b0-4916-b23d-2e05d626598a" />
