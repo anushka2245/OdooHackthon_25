@@ -7,9 +7,7 @@ exports.sendSwapRequest = async (req, res) => {
   try {
     const swap = await SwapRequest.create({
       fromUser,
-      toUser,
-      skillOffered,
-      skillRequested,
+      toUser
     });
 
     res.status(201).json(swap);
