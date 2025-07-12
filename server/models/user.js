@@ -4,7 +4,10 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: String,
   password: String, 
-  profilePhoto: String,
+  profilePhoto: {
+    data: String,     
+    contentType: String, 
+  },
   location: String,
   isPublic: { type: Boolean, default: true },
   skillsOffered: [String],

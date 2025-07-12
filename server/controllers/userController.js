@@ -121,14 +121,10 @@ exports.getUserById = async (req, res) => {
   }
 };
 
-
 // PUT /api/users/:id
 exports.updateUserById = async (req, res) => {
   try {
     const userId = req.params.id;
-
-    // 📸 If file is uploaded, set profilePhoto
-    const profilePhoto = req.file ? `/uploads/${req.file.filename}` : req.body.profilePhoto;
 
     const {
       name,
@@ -138,25 +134,35 @@ exports.updateUserById = async (req, res) => {
       skillsWanted,
       availability,
       rating,
-      isPublic
+      isPublic,
+      profilePhotoBase64,    
+      profilePhotoType       
     } = req.body;
+
+    const updateFields = {
+      name,
+      email,
+      location,
+      skillsOffered,
+      skillsWanted,
+      availability,
+      rating,
+      isPublic
+    };
+
+    if (profilePhotoBase64 && profilePhotoType) {
+      updateFields.profilePhoto = {
+        data: profilePhotoBase64,
+        contentType: profilePhotoType
+      };
+    }
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      {
-        name,
-        email,
-        profilePhoto, 
-        location,
-        skillsOffered,
-        skillsWanted,
-        availability,
-        rating,
-        isPublic
-      },
+      updateFields,
       {
         new: true,
-        runValidators: true,
+        runValidators: true
       }
     ).select('-password');
 
@@ -164,7 +170,12 @@ exports.updateUserById = async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    res.status(200).json({ success: true, message: 'User updated successfully', data: updatedUser });
+    res.status(200).json({
+      success: true,
+      message: 'User updated successfully',
+      data: updatedUser
+    });
+
   } catch (error) {
     console.error('Error updating user:', error.message);
     res.status(500).json({ success: false, message: 'Server error. Please try again.' });
