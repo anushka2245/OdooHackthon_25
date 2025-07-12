@@ -2,7 +2,7 @@ const SwapRequest = require('../models/SwapRequest');
 
 // Send a New Swap Request
 exports.sendSwapRequest = async (req, res) => {
-  const { fromUser, toUser, skillOffered, skillRequested } = req.body;
+  const { fromUser, toUser} = req.body;
 
   try {
     const swap = await SwapRequest.create({
