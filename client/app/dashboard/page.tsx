@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, MessageSquare, Star, Users, Calendar, Settings, Check, X, Clock } from "lucide-react"
 import Link from "next/link"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function DashboardPage() {
   const [notifications] = useState([
@@ -60,6 +61,8 @@ export default function DashboardPage() {
     },
   ])
 
+  const { logout } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -81,6 +84,9 @@ export default function DashboardPage() {
                 <AvatarFallback>JD</AvatarFallback>
               </Avatar>
             </Link>
+            <Button variant="outline" size="sm" onClick={logout}>
+              Logout
+            </Button>
           </div>
         </div>
       </header>
