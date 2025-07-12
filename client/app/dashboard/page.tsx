@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -45,68 +45,37 @@ export default function DashboardPage() {
     },
   ]);
 
-  const [activeSwaps] = useState([
-    {
-      id: 1,
-      partner: "John Doe",
-      skill: "Photoshop",
-      status: "pending",
-      avatar: "/placeholder.svg",
-    },
-    {
-      id: 2,
-      partner: "Sarah Wilson",
-      skill: "Cooking",
-      status: "accepted",
-      avatar: "/placeholder.svg",
-    },
-    {
-      id: 3,
-      partner: "Mike Johnson",
-      skill: "Guitar",
-      status: "scheduled",
-      avatar: "/placeholder.svg",
-    },
-  ]);
+  // Swaps (requests) state
+  const [requests, setRequests] = useState<any[]>([]);
+  const [requestsPage, setRequestsPage] = useState(1);
+  const [requestsTotalPages, setRequestsTotalPages] = useState(1);
+  const [requestsLoading, setRequestsLoading] = useState(false);
+  const [requestsError, setRequestsError] = useState("");
+  // Get current user id
+  const currentUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
 
-  const [pendingRequests] = useState([
-    {
-      id: 1,
-      from: "Alex Thompson",
-      avatar: "/placeholder.svg",
-      skillOffered: "Guitar Lessons",
-      skillWanted: "Photography",
-      message:
-        "Hi! I'd love to learn photography from you. I can teach guitar in return. I'm available weekends!",
-      timestamp: "2 hours ago",
-      rating: 4.8,
-      totalSwaps: 12,
-    },
-    {
-      id: 2,
-      from: "Maria Garcia",
-      avatar: "/placeholder.svg",
-      skillOffered: "Spanish Tutoring",
-      skillWanted: "Web Design",
-      message:
-        "Hello! I saw your web design skills. I'm a native Spanish speaker and would love to help you learn Spanish in exchange for web design lessons.",
-      timestamp: "5 hours ago",
-      rating: 4.9,
-      totalSwaps: 18,
-    },
-    {
-      id: 3,
-      from: "David Kim",
-      avatar: "/placeholder.svg",
-      skillOffered: "Cooking Classes",
-      skillWanted: "Photoshop",
-      message:
-        "Hey there! I'm a professional chef and would love to teach you cooking in exchange for Photoshop tutorials. Let me know if you're interested!",
-      timestamp: "1 day ago",
-      rating: 4.6,
-      totalSwaps: 8,
-    },
-  ]);
+  useEffect(() => {
+    if (!currentUserId) return;
+    setRequestsLoading(true);
+    setRequestsError("");
+    fetch(`http://localhost:5000/api/swaps/from/${currentUserId}?page=${requestsPage}&limit=5`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && Array.isArray(data.data)) {
+          setRequests(data.data);
+          setRequestsTotalPages(data.totalPages || 1);
+        } else {
+          setRequests([]);
+          setRequestsTotalPages(1);
+        }
+      })
+      .catch(() => {
+        setRequestsError("Failed to fetch requests.");
+        setRequests([]);
+        setRequestsTotalPages(1);
+      })
+      .finally(() => setRequestsLoading(false));
+  }, [currentUserId, requestsPage]);
 
   const { logout } = useAuth();
 
@@ -155,145 +124,101 @@ export default function DashboardPage() {
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2">
-            <Tabs defaultValue="swaps" className="space-y-6">
+            <Tabs defaultValue="requests" className="space-y-6">
               <TabsList>
-                <TabsTrigger value="swaps">Active Swaps</TabsTrigger>
-                <TabsTrigger value="requests">
-                  Requests ({pendingRequests.length})
-                </TabsTrigger>
+                <TabsTrigger value="requests">Requests</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="swaps" className="space-y-4">
-                {activeSwaps.map((swap) => (
-                  <Card key={swap.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <Avatar>
-                            <AvatarImage
-                              src={swap.avatar || "/placeholder.svg"}
-                            />
-                            <AvatarFallback>
-                              {swap.partner
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h3 className="font-semibold">{swap.partner}</h3>
-                            <p className="text-sm text-gray-600">
-                              Teaching: {swap.skill}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            variant={
-                              swap.status === "accepted"
-                                ? "default"
-                                : swap.status === "pending"
-                                ? "secondary"
-                                : "outline"
-                            }
-                          >
-                            {swap.status}
-                          </Badge>
-                          <Button size="sm">
-                            <MessageSquare className="w-4 h-4 mr-2" />
-                            Chat
-                          </Button>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </TabsContent>
-
               <TabsContent value="requests" className="space-y-4">
-                {pendingRequests.map((request) => (
-                  <Card key={request.id}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center space-x-4">
-                          <Avatar>
-                            <AvatarImage
-                              src={request.avatar || "/placeholder.svg"}
-                            />
-                            <AvatarFallback>
-                              {request.from
-                                .split(" ")
-                                .map((n) => n[0])
-                                .join("")}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <h3 className="font-semibold">{request.from}</h3>
-                            <div className="flex items-center space-x-2">
-                              <div className="flex items-center">
-                                <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                <span className="text-sm font-medium ml-1">
-                                  {request.rating}
-                                </span>
-                              </div>
-                              <span className="text-sm text-gray-400">•</span>
-                              <span className="text-sm text-gray-600">
-                                {request.totalSwaps} swaps
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600">
-                              {request.timestamp}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant="secondary">
-                          <Clock className="w-3 h-3 mr-1" />
-                          Pending
-                        </Badge>
-                      </div>
-
-                      <div className="grid md:grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <h4 className="text-sm font-medium mb-1">
-                            Offering:
-                          </h4>
-                          <Badge variant="default">
-                            {request.skillOffered}
-                          </Badge>
-                        </div>
-                        <div>
-                          <h4 className="text-sm font-medium mb-1">
-                            Wants to learn:
-                          </h4>
-                          <Badge variant="outline">{request.skillWanted}</Badge>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium mb-2">Message:</h4>
-                        <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">
-                          {request.message}
-                        </p>
-                      </div>
-
-                      <div className="flex gap-2">
-                        <Button size="sm">
-                          <Check className="w-4 h-4 mr-2" />
-                          Accept
-                        </Button>
-                        <Button size="sm" variant="outline">
-                          <X className="w-4 h-4 mr-2" />
-                          Decline
-                        </Button>
-                        <Button size="sm" variant="ghost">
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Reply
-                        </Button>
-                      </div>
+                {requestsLoading ? (
+                  <div className="text-center py-8">Loading requests...</div>
+                ) : requestsError ? (
+                  <div className="text-center text-red-600 py-8">{requestsError}</div>
+                ) : requests.length === 0 ? (
+                  <Card className="text-center py-12">
+                    <CardContent>
+                      <p className="text-gray-600">No requests found.</p>
                     </CardContent>
                   </Card>
-                ))}
+                ) : (
+                  requests.map((request) => (
+                    <Card key={request._id}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-4">
+                            <Avatar>
+                              <AvatarImage src={request.fromUser?.profilePhoto || "/placeholder.svg"} />
+                              <AvatarFallback>
+                                {request.fromUser?.name
+                                  ? request.fromUser.name.split(" ").map((n: string) => n[0]).join("")
+                                  : "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <h3 className="font-semibold">{request.fromUser?.name || "Unknown"}</h3>
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-center">
+                                  <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                                  <span className="text-sm font-medium ml-1">{request.fromUser?.rating ?? "-"}</span>
+                                </div>
+                                <span className="text-sm text-gray-400">•</span>
+                                <span className="text-sm text-gray-600">{request.fromUser?.email}</span>
+                              </div>
+                              <p className="text-sm text-gray-600">{new Date(request.createdAt).toLocaleString()}</p>
+                            </div>
+                          </div>
+                          <Badge variant="secondary">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {request.status}
+                          </Badge>
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-4 mb-4">
+                          <div>
+                            <h4 className="text-sm font-medium mb-1">Skill Offered:</h4>
+                            <Badge variant="default">{request.skillOffered}</Badge>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium mb-1">Skill Requested:</h4>
+                            <Badge variant="outline">{request.skillRequested}</Badge>
+                          </div>
+                        </div>
+
+                        {request.message && (
+                          <div className="mb-4">
+                            <h4 className="text-sm font-medium mb-2">Message:</h4>
+                            <p className="text-sm text-gray-600 bg-gray-50 p-3 rounded-lg">{request.message}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
+                {/* Pagination Controls */}
+                {requestsTotalPages > 1 && (
+                  <div className="flex justify-center mt-6">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setRequestsPage((p) => Math.max(1, p - 1))}
+                      disabled={requestsPage === 1}
+                      className="mr-2"
+                    >
+                      Previous
+                    </Button>
+                    <span className="px-2 py-1 text-sm">Page {requestsPage} of {requestsTotalPages}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setRequestsPage((p) => Math.min(requestsTotalPages, p + 1))}
+                      disabled={requestsPage === requestsTotalPages}
+                      className="ml-2"
+                    >
+                      Next
+                    </Button>
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="history">

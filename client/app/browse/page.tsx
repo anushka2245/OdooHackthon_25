@@ -23,7 +23,7 @@ import { Textarea } from "@/components/ui/textarea";
 export default function BrowsePage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filterBy, setFilterBy] = useState("all");
-  const [availability, setAvailability] = useState("");
+  const [availability, setAvailability] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 6;
   const [users, setUsers] = useState<any[]>([]);
@@ -60,7 +60,7 @@ export default function BrowsePage() {
     params.append("page", String(currentPage));
     params.append("limit", String(usersPerPage));
     if (filterBy !== "all") params.append("skill", filterBy);
-    if (availability) params.append("availability", availability);
+    if (availability !== "all") params.append("availability", availability);
     if (searchTerm) params.append("search", searchTerm);
     fetch(`http://localhost:5000/api/users/public-paginated?${params.toString()}`)
       .then(res => res.json())
@@ -128,6 +128,18 @@ export default function BrowsePage() {
                   <SelectItem value="guitar">Guitar</SelectItem>
                   <SelectItem value="web design">Web Design</SelectItem>
                   <SelectItem value="spanish">Spanish</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={availability} onValueChange={setAvailability}>
+                <SelectTrigger className="w-full md:w-48">
+                  <SelectValue placeholder="Filter by availability" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Availability</SelectItem>
+                  <SelectItem value="Weekends">Weekends</SelectItem>
+                  <SelectItem value="Weekdays">Weekdays</SelectItem>
+                  <SelectItem value="Evening">Evening</SelectItem>
+                  <SelectItem value="Flexible">Flexible</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -277,6 +289,7 @@ export default function BrowsePage() {
             setRequestLoading(true);
             setRequestFeedback(null);
             try {
+              console.log({requestSkillOffered , requestSkillRequested})
               const res = await fetch("http://localhost:5000/api/swaps", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -293,6 +306,7 @@ export default function BrowsePage() {
                 setTimeout(() => setShowRequestModal(false), 1200);
               } else {
                 const data = await res.json();
+                console.log(data)
                 setRequestFeedback(data.error || "Failed to send request.");
               }
             } catch {
@@ -302,7 +316,7 @@ export default function BrowsePage() {
             }
           }}>
             <div className="mb-4">
-              <label className="block mb-1">Choose one of your offered skills</label>
+              <label className="block mb-1">Skill Offered</label>
               <Select value={requestSkillOffered} onValueChange={setRequestSkillOffered} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a skill you offer" />
@@ -315,7 +329,7 @@ export default function BrowsePage() {
               </Select>
             </div>
             <div className="mb-4">
-              <label className="block mb-1">Choose one of their wanted skills</label>
+              <label className="block mb-1">Skill Requested</label>
               <Select value={requestSkillRequested} onValueChange={setRequestSkillRequested} required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a skill you want" />
