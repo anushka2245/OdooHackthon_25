@@ -1,4 +1,4 @@
-const User = require('../models/user'); // Mongoose User model
+const User = require('../models/user'); 
 
 // GET /api/users/public
 exports.getPublicProfiles = async (req, res) => {
@@ -105,7 +105,7 @@ exports.getUserById = async (req, res) => {
   try {
     const userId = req.params.id;
 
-    // Find user by ID and only select public fields
+  
     const user = await User.findById(userId)
       .select('name email profilePhoto location skillsOffered skillsWanted availability rating')
       .lean();
@@ -126,10 +126,13 @@ exports.getUserById = async (req, res) => {
 exports.updateUserById = async (req, res) => {
   try {
     const userId = req.params.id;
+
+    // 📸 If file is uploaded, set profilePhoto
+    const profilePhoto = req.file ? `/uploads/${req.file.filename}` : req.body.profilePhoto;
+
     const {
       name,
       email,
-      profilePhoto,
       location,
       skillsOffered,
       skillsWanted,
@@ -143,7 +146,7 @@ exports.updateUserById = async (req, res) => {
       {
         name,
         email,
-        profilePhoto,
+        profilePhoto, 
         location,
         skillsOffered,
         skillsWanted,
@@ -152,10 +155,10 @@ exports.updateUserById = async (req, res) => {
         isPublic
       },
       {
-        new: true,            // return updated doc
-        runValidators: true,  // validate with schema
+        new: true,
+        runValidators: true,
       }
-    ).select('-password'); // Exclude sensitive fields
+    ).select('-password');
 
     if (!updatedUser) {
       return res.status(404).json({ success: false, message: 'User not found' });
